@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx
+  labels:
+    project: kubectl-practice
+spec:
+  template:
+    metadata:
+      name: nginx
+      labels:
+        type: front-end
+        project: kubectl-practice
+        name: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+  replicas: 3
+  selector:
+    matchLabels:
+      type: front-end
