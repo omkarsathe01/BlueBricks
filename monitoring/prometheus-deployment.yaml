@@ -4,6 +4,9 @@ metadata:
   name: prometheus-deployment
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      name: prometheus
   template:
     metadata:
       name: prometheus
@@ -13,6 +16,15 @@ spec:
       containers:
       - name: prometheus-container
         image: prom/prometheus:latest
-  selector:
-    matchLabels:
-      name: prometheus
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - mountPath: /etc/prometheus
+          name: prometheus-volume
+        command: ["--config.file=/etc/prometheus/prometheus.yml"]
+
+      volumes:
+      - name: prometheus-volume
+        hostPath:
+          path: ./prometheus
+          type: Directory

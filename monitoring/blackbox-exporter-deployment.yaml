@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blackbox-exporter-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: blackbox-exporter
+  template:
+    metadata:
+      name: blackbox-exporter
+      labels:
+        name: blackbox-exporter
+    spec:
+      containers:
+      - name: blackbox-exporter-container
+        image: quay.io/prometheus/blackbox-exporter:latest
+        ports:
+        - containerPort: 9115
+        volumeMounts:
+        - mountPath: /config
+          name: blackbox-exporter-volume
+        command: ["--config.file=/config/blackbox.yml"]
+
+      volumes:
+      - name: blackbox-exporter-volume
+        hostPath:
+          path: ./blackbox_exporter
+          type: Directory

@@ -13,6 +13,11 @@ spec:
       containers:
       - name: smart-ocr-container
         image: mightysanjay/smart-ocr:v1
+        ports:
+        - containerPort: 5001
+        stdin: true
+        tty: true
+        command: ["sh", "-c", "./start.sh && tail -f /dev/null"]
   selector:
     matchLabels:
       name: smart-ocr
