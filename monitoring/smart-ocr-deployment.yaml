@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smart-ocr-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: smart-ocr
+      labels:
+        name: smart-ocr
+    spec:
+      containers:
+      - name: smart-ocr-container
+        image: mightysanjay/smart-ocr:v1
+  selector:
+    matchLabels:
+      name: smart-ocr
