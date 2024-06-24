@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+data:
+  alertmanager.yaml: |
+    global:
+      resolve_timeout: 5m
+
+    route:
+      group_by: ['alertname']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 3h
+      receiver: email-me
+
+    receivers:
+    - name: email-me
+      email_configs:
+      - send_resolved: true
+        to: omkarsathe.pers@gmail.com,sanjaymenaria03@gmail.com
+        from: bluebricks.alerts@gmail.com
+        smarthost: smtp.gmail.com:587
+        auth_username: "bluebricks.alerts@gmail.com"
+        auth_identity: "bluebricks.alerts@gmail.com"
+        auth_password: "bwgs lzsb qbua yecb"
+
+    inhibit_rules:
+    - source_match:
+        severity: 'critical'
+      target_match:
+        severity: 'warning'
+      equal: ['alertname', 'dev', 'instance']

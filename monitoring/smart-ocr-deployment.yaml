@@ -1,23 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: smart-ocr-service
+spec:
+  selector:
+    app: smart-ocr
+  ports:
+  - port: 5000
+    targetPort: 5000
+    nodePort: 30002
+  type: NodePort
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: smart-ocr-deployment
+  name: smart-ocr
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: smart-ocr
   template:
     metadata:
-      name: smart-ocr
       labels:
-        name: smart-ocr
+        app: smart-ocr
     spec:
       containers:
-      - name: smart-ocr-container
-        image: mightysanjay/smart-ocr:v1
+      - name: smart-ocr
+        image: mightysanjay/smart-ocr:v2
         ports:
-        - containerPort: 5001
+        - containerPort: 5000
         stdin: true
         tty: true
         command: ["sh", "-c", "./start.sh && tail -f /dev/null"]
-  selector:
-    matchLabels:
-      name: smart-ocr

@@ -3,7 +3,40 @@ kind: ConfigMap
 metadata:
   name: prometheus-config
 data:
-  prometheus.yml: |
+  prometheus-rules.yaml: |
+    groups:
+    - name: alert_rules
+      rules:
+      - alert: "Job has Failed"
+        expr: up == 0
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Job(s) on {{ $labels.instance }} has failed"
+          description: "The instance [{{ $labels.instance }}] for job [{{ $labels.job }}] is currently unreachable."
+
+      - alert: ContainerStopped
+        expr: engine_daemon_container_states_containers{state="stopped"}!=0
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container(s) on [{{ $labels.instance }}] are stopped"
+          description: "One or more containers have stopped."
+
+    - name: application_health_alerts
+      rules:
+      - alert: "Application is Down"
+        expr: probe_success == 0
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Application health check failed"
+          description: "The application health check for {{ $labels.instance }}  has failed, indicating that the application is down."
+
+  prometheus.yaml: |
     global:
       scrape_interval: 10s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
       evaluation_interval: 10s # Evaluate rules every 15 seconds. The default is every 1 minute.
@@ -14,11 +47,11 @@ data:
       alertmanagers:
         - static_configs:
             - targets:
-              - alertmanager:9093
+              - alertmanager-service:9093
 
     # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
     rule_files:
-      - "prometheus_rules.yml"
+      - "prometheus-rules.yaml"
 
     scrape_configs:
 
@@ -27,11 +60,7 @@ data:
 
       - job_name: "prometheus"
         static_configs:
-          - targets: ["prometheus:9090"]
-
-      - job_name: "docker-metrics"
-        static_configs:
-          - targets: ["<docker-metrics>:9323"]
+          - targets: ["prometheus-service:9090"]
 
       - job_name: 'running-applications-blackbox'
         metrics_path: /probe
@@ -39,15 +68,23 @@ data:
           module: [http_2xx]  # Look for a HTTP 200 response.
         static_configs:
           - targets:
-            - <target-url>
+            - http://smart-ocr-service:5000/
         relabel_configs:
           - source_labels: [__address__]
             target_label: __param_target
           - source_labels: [__param_target]
             target_label: instance
           - target_label: __address__
-            replacement: blackbox_exporter:9115  # The blackbox exporter's real hostname:port.
+            replacement: blackbox-exporter-service:9115 # The blackbox exporter's real hostname:port.
 
       - job_name: 'blackbox_exporter'  # collect blackbox exporter's operational metrics.
         static_configs:
-          - targets: ['blackbox_exporter:9115']
+          - targets: ['blackbox-exporter-service:9115']
+
+      - job_name: 'alertmanager'
+        static_configs:
+          - targets: ['alertmanager-service:9093']
+
+      - job_name: 'grafana'
+        static_configs:
+          - targets: ['grafana-service:3000']

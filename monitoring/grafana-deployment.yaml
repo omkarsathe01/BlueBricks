@@ -1,17 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-service
+spec:
+  selector:
+    app: grafana
+  ports:
+  - port: 3000
+    targetPort: 3000
+    nodePort: 30004
+  type: NodePort
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: grafana-deployment
+  name: grafana
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: grafana
+      app: grafana
   template:
     metadata:
-      name: grafana
       labels:
-        name: grafana
+        app: grafana
     spec:
       containers:
       - name: grafana-container

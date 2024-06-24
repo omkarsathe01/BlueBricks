@@ -1,30 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager-service
+spec:
+  selector:
+    app: alertmanager
+  ports:
+  - targetPort: 9093
+    port: 9093
+    nodePort: 30005
+  type: NodePort
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: alertmanager-deployment
+  name: alertmanager
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: alertmanager
+      app: alertmanager
   template:
     metadata:
-      name: alertmanager
       labels:
-        name: alertmanager
+        app: alertmanager
     spec:
       containers:
       - name: alertmanager-container
         image: quay.io/prometheus/alertmanager
         ports:
         - containerPort: 9093
+        args:
+        - "--config.file=/etc/alertmanager/alertmanager.yaml"
         volumeMounts:
-        - mountPath: /etc/alertmanager
-          name: alertmanager-volume
-        command: ["--config.file=/etc/alertmanager/alertmanager.yml"]
-
+        - name: alertmanager-config-volume
+          mountPath: /etc/alertmanager
       volumes:
-      - name: alertmanager-volume
-        hostPath:
-          path: ./alertmanager
-          type: Directory
+      - name: alertmanager-config-volume
+        configMap:
+          name: alertmanager-config
